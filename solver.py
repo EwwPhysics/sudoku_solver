@@ -1,5 +1,6 @@
 import math
 import itertools
+import scraper
 
 
 def solve(board):
@@ -23,7 +24,7 @@ def solve(board):
             vals[index] = {board[index[0]][index[1]]}
 
     res = [vals, board]
-    while unfinished(res[0]):
+    while unfinished(res[1]):
         res = layer(n, side, res[0], res[1], next(rcb))
 
     return res[1]
@@ -55,8 +56,13 @@ def layer(n, side, vals, board, rcb):
     return vals, b
 
 
-def unfinished(vals):
-    for value in vals.values():
-        if len(value) > 1 or value == {0}:
+def unfinished(board):
+    for row in board:
+        if 0 in row:
             return True
     return False
+
+
+a = scraper.get_puzzle('592604')
+print(a)
+print(solve(a))
