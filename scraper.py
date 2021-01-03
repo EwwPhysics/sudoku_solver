@@ -7,7 +7,7 @@ def get_puzzle(e='random.html?diff=1'):
     if e == 'random.html?diff=1':
         URL = 'https://www.menneske.no/sudoku/eng/random.html?diff=1'
     else:
-        URL = 'https://www.menneske.no/sudoku/eng/showpuzzle.html?number=' + e
+        URL = f'https://www.menneske.no/sudoku/eng/showpuzzle.html?number={e}'
 
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')

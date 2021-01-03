@@ -63,6 +63,5 @@ def unfinished(board):
     return False
 
 
-a = scraper.get_puzzle('592604')
-print(a)
+a = scraper.get_puzzle()
 print(solve(a))
