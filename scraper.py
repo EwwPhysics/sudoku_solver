@@ -1,20 +1,22 @@
 import requests
 from bs4 import BeautifulSoup
 
+from typing import Optional
 
-def get_puzzle(e='random.html?diff=1'):
-    board = []
-    if e == 'random.html?diff=1':
-        URL = f'https://www.menneske.no/sudoku/eng/{e}'
+def get_puzzle(e: Optional[int]):
+    template = 'https://www.menneske.no/sudoku/eng/{}'.format
+    if e is None:
+        URL = template('random.html?diff=1')
     else:
-        URL = f'https://www.menneske.no/sudoku/eng/showpuzzle.html?number={e}'
+        URL = template(f'showpuzzle.html?number={e}')
 
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
     rows = soup.find_all('tr', class_='grid')
 
     classes = ['bottomedge', 'bottomright', 'normal', 'rightedge']
-    for i, row in enumerate(rows):
+    board = []
+    for row in rows:
         boxes = row.find_all('td', class_=lambda x: x in classes)
         add = []
         for box in boxes:
