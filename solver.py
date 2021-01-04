@@ -1,6 +1,5 @@
 import math
 import itertools
-import scraper
 
 
 def solve(board):
