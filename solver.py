@@ -1,5 +1,5 @@
 import heapq
-import itertools
+
 
 class PriorityQueue:
     """
@@ -11,9 +11,7 @@ class PriorityQueue:
 
     def __init__(self) -> None:
         self.queue = []
-        self.counter = itertools.count()
         self.entries = {}
-
 
     def push(self, item, priority: int) -> None:
         """
@@ -26,32 +24,40 @@ class PriorityQueue:
             entry = self.entries[item]
             entry[0] = min(entry[0], priority)
         else:
-            entry = [priority, next(self.counter), item]
+            entry = [priority, item]
             self.entries[item] = entry
             heapq.heappush(self.queue, entry)
 
-
     def pop(self):
         """
-        Removes and returns the item with the lowest prority.
+        Removes the item with the lowest priority and
+        returns an (item, priority) tuple
         """
 
-        _, _, item = heapq.heappop(self.queue)
+        priority, item = heapq.heappop(self.queue)
         del self.entries[item]
-        return item
+        return item, priority
+
+    def increment_priority(self, item):
+        if entry := self.entries.get(item):
+            entry[0] += 1
+
+    def decrement_priority(self, item):
+        if entry := self.entries.get(item):
+            entry[0] -= 1
 
 
     def __len__(self) -> int:
         return len(self.queue)
 
-    def __bool__(self) -> int:
+    def __bool__(self) -> bool:
         return bool(self.queue)
+
+    def __str__(self) -> str:
+        return str(self.queue)
 
 
 class Solver:
-    """
-    """
-
     BLOCKS = [
         [0, 1, 2],
         [3, 4, 5],
@@ -63,10 +69,14 @@ class Solver:
         self.puzzle = puzzle
         self.queue = PriorityQueue()
         self.solved = False
+        self.adj = {}
 
         for i, row in enumerate(puzzle):
-            for j, _ in enumerate(row):
-                self.queue.push((i, j), len(self._valid_choices(i, j)))
+            for j, v in enumerate(row):
+                if not v:
+                    t = i, j
+                    self.queue.push(t, len(self._valid_choices(i, j)))
+                    self.adj[t] = {self.puzzle[x][y] for x, y in self._adjacent_squares(i, j)}
 
     def solve(self) -> None:
         """
@@ -77,16 +87,46 @@ class Solver:
         if self.solved:
             return
 
-    def _dfs(self, x, y):
-        if not self.queue:
-            return
+        (nx, ny), _ = self.queue.pop()
+        self._dfs(nx, ny)
+        self.solved = True
 
+    def _dfs(self, x, y):
+        if len(self.queue) == 0:
+            return True
+
+        (nx, ny), priority = self.queue.pop()
+        for v in self._valid_choices(x, y):
+            self._set_square(x, y, v)
+
+            if self._dfs(nx, ny):
+                return True
+
+            self._set_square(x, y, 0)
+
+        self.queue.push((nx, ny), priority)
+        return False
+
+    def _set_square(self, x: int, y: int, v: int) -> None:
+        self.puzzle[x][y] = v
+        if v:
+            for item in self.adj[(x, y)]:
+                self.queue.decrement_priority(item)
+        else:
+            for item in self.adj[(x, y)]:
+                self.queue.increment_priority(item)
 
 
     def _valid_choices(self, x: int, y: int) -> set[int]:
-        A = set(self.puzzle[x])
-        B = {self.puzzle[i][y] for i in range(9)}
-        C = set()
+        return Solver.FULL - {self.puzzle[i][j] for i, j in self._adjacent_squares(x, y)}
+
+    def _adjacent_squares(self, x: int, y: int) -> set[tuple[int, int]]:
+        xy_squares = set()
+        for i in range(9):
+            xy_squares.add((i, y))
+            xy_squares.add((x, i))
+
+        block_squares = set()
         for i in Solver.BLOCKS:
             for j in i:
                 if j == x:
@@ -95,7 +135,10 @@ class Solver:
                     col = i
         for i in row:
             for j in col:
-                C.add(self.puzzle[i][j])
+                block_squares.add((i, j))
 
-        return Solver.FULL - A - B - C
+        all_squares = set.union(xy_squares, block_squares)
+        all_squares.remove((x, y))
+        return all_squares
+
 
