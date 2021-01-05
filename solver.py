@@ -66,7 +66,11 @@ class Solver:
                 if not v:
                     t = i, j
                     self.queue.push(t, len(self._valid_choices(i, j)))
-                    self.adj[t] = {(x, y) for x, y in self._adjacent_squares(i, j) if not self.puzzle[x][y]}
+                    self.adj[t] = {
+                        (x, y)
+                        for x, y in self._adjacent_squares(i, j)
+                        if not self.puzzle[x][y]
+                    }
 
     def solve(self) -> None:
         """
@@ -103,9 +107,10 @@ class Solver:
             if not self.puzzle[item[0]][item[1]]:
                 self.queue.push(item, len(self._valid_choices(item[0], item[1])))
 
-
     def _valid_choices(self, x: int, y: int) -> set[int]:
-        return Solver.FULL - {self.puzzle[i][j] for i, j in self._adjacent_squares(x, y)}
+        return Solver.FULL - {
+            self.puzzle[i][j] for i, j in self._adjacent_squares(x, y)
+        }
 
     def _adjacent_squares(self, x: int, y: int) -> set[tuple[int, int]]:
         """
@@ -130,4 +135,3 @@ class Solver:
         xy_squares.update(block_squares)
         xy_squares.remove((x, y))
         return xy_squares
-
