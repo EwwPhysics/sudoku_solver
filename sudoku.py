@@ -3,8 +3,10 @@ import solver
 import argparse
 import time
 
+
 def display_board(board):
     print(*board, sep="\n", end="\n\n")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sudoku Puzzle Solver')
