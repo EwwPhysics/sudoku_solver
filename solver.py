@@ -16,13 +16,12 @@ class PriorityQueue:
     def push(self, item, priority: int) -> None:
         """
         Add an item to the queue with given priority.
-        If the item is already in the queue with a higher
-        priority, modify the existing item.
+        If the item is already in the queue, modify the existing item.
         """
 
         if item in self.entries:
             entry = self.entries[item]
-            entry[0] = min(entry[0], priority)
+            entry[0] = priority
         else:
             entry = [priority, item]
             self.entries[item] = entry
@@ -37,15 +36,6 @@ class PriorityQueue:
         priority, item = heapq.heappop(self.queue)
         del self.entries[item]
         return item, priority
-
-    def increment_priority(self, item):
-        if entry := self.entries.get(item):
-            entry[0] += 1
-
-    def decrement_priority(self, item):
-        if entry := self.entries.get(item):
-            entry[0] -= 1
-
 
     def __len__(self) -> int:
         return len(self.queue)
@@ -76,7 +66,7 @@ class Solver:
                 if not v:
                     t = i, j
                     self.queue.push(t, len(self._valid_choices(i, j)))
-                    self.adj[t] = {self.puzzle[x][y] for x, y in self._adjacent_squares(i, j)}
+                    self.adj[t] = {(x, y) for x, y in self._adjacent_squares(i, j) if not self.puzzle[x][y]}
 
     def solve(self) -> None:
         """
@@ -109,18 +99,18 @@ class Solver:
 
     def _set_square(self, x: int, y: int, v: int) -> None:
         self.puzzle[x][y] = v
-        if v:
-            for item in self.adj[(x, y)]:
-                self.queue.decrement_priority(item)
-        else:
-            for item in self.adj[(x, y)]:
-                self.queue.increment_priority(item)
+        for item in self.adj[(x, y)]:
+            if not self.puzzle[item[0]][item[1]]:
+                self.queue.push(item, len(self._valid_choices(item[0], item[1])))
 
 
     def _valid_choices(self, x: int, y: int) -> set[int]:
         return Solver.FULL - {self.puzzle[i][j] for i, j in self._adjacent_squares(x, y)}
 
     def _adjacent_squares(self, x: int, y: int) -> set[tuple[int, int]]:
+        """
+        Calculates the adjacent squares based on sudoku rules
+        """
         xy_squares = set()
         for i in range(9):
             xy_squares.add((i, y))
@@ -137,8 +127,7 @@ class Solver:
             for j in col:
                 block_squares.add((i, j))
 
-        all_squares = set.union(xy_squares, block_squares)
-        all_squares.remove((x, y))
-        return all_squares
-
+        xy_squares.update(block_squares)
+        xy_squares.remove((x, y))
+        return xy_squares
 
