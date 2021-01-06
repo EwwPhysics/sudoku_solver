@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-
 from typing import Optional
+
 
 def get_puzzle(e: Optional[int]):
     template = 'https://www.menneske.no/sudoku/eng/{}'.format
